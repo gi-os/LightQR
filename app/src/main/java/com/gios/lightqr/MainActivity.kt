@@ -3,9 +3,7 @@ package com.gios.lightqr
 import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -23,17 +21,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -50,7 +42,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen { SCAN, ENTRY, RESULT, HISTORY }
+private enum class Screen { SCAN, ENTRY, RESULT, HISTORY, BROWSER }
 
 @Composable
 private fun App() {
@@ -72,6 +64,8 @@ private fun App() {
     ) { hasCamera = it }
     LaunchedEffect(Unit) { if (!hasCamera) askCamera.launch(Manifest.permission.CAMERA) }
 
+    var browserUrl by remember { mutableStateOf("") }
+
     fun accept(text: String) {
         val t = text.trim()
         if (t.isEmpty()) return
@@ -86,15 +80,11 @@ private fun App() {
                 hasCamera = hasCamera,
                 onRequest = { askCamera.launch(Manifest.permission.CAMERA) },
                 onScanned = { if (screen == Screen.SCAN) accept(it) },
-                onType = { screen = Screen.ENTRY },
                 onHistory = { screen = Screen.HISTORY },
-            )
-            Screen.ENTRY -> EntryScreen(
-                onSubmit = { accept(it) },
-                onBack = { screen = Screen.SCAN },
             )
             Screen.RESULT -> ResultScreen(
                 item = current,
+                onOpen = { url -> browserUrl = url; screen = Screen.BROWSER },
                 onBack = { screen = Screen.SCAN },
             )
             Screen.HISTORY -> HistoryScreen(
@@ -103,6 +93,11 @@ private fun App() {
                 onClear = { store.clear(); history = emptyList() },
                 onBack = { screen = Screen.SCAN },
             )
+            Screen.BROWSER -> BrowserScreen(
+                url = browserUrl,
+                onClose = { screen = Screen.RESULT },
+            )
+            Screen.ENTRY -> { screen = Screen.SCAN }
         }
     }
 }
@@ -112,7 +107,6 @@ private fun ScanScreen(
     hasCamera: Boolean,
     onRequest: () -> Unit,
     onScanned: (String) -> Unit,
-    onType: () -> Unit,
     onHistory: () -> Unit,
 ) {
     Box(Modifier.fillMaxSize()) {
@@ -149,9 +143,8 @@ private fun ScanScreen(
                     Modifier.align(Alignment.CenterHorizontally),
                     color = LightMuted,
                 )
-                Spacer(Modifier.height(gu(1f)))
+                Spacer(Modifier.height(gu(2f)))
             }
-            LightBottomBar(actions = listOf("Type or paste" to onType))
         }
     }
 }
@@ -193,44 +186,11 @@ private fun CameraPreview(onScanned: (String) -> Unit) {
 }
 
 @Composable
-private fun EntryScreen(onSubmit: (String) -> Unit, onBack: () -> Unit) {
-    var text by remember { mutableStateOf("") }
-    val keyboard = LocalSoftwareKeyboardController.current
-    fun go() { keyboard?.hide(); onSubmit(text) }
-
-    Column(Modifier.fillMaxSize()) {
-        LightTopBar(title = "Type or Paste", left = "Back" to onBack)
-        Column(
-            Modifier.weight(1f).fillMaxWidth().padding(horizontal = gu(1.5f)),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            BasicTextField(
-                value = text,
-                onValueChange = { text = it },
-                textStyle = LightType.copy.copy(color = LightInk),
-                cursorBrush = SolidColor(LightInk),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                keyboardActions = KeyboardActions(onGo = { go() }),
-                modifier = Modifier.fillMaxWidth(),
-                decorationBox = { inner ->
-                    Column {
-                        if (text.isEmpty()) {
-                            LText("A link, wifi, note…", LightType.copy, color = LightMuted)
-                        }
-                        inner()
-                        Spacer(Modifier.height(gu(0.75f)))
-                        Hairline()
-                    }
-                },
-            )
-        }
-        LightBottomBar(actions = listOf("Go" to { go() }))
-    }
-}
-
-@Composable
-private fun ResultScreen(item: ScannedItem?, onBack: () -> Unit) {
+private fun ResultScreen(
+    item: ScannedItem?,
+    onOpen: (String) -> Unit,
+    onBack: () -> Unit,
+) {
     val context = LocalContext.current
     if (item == null) { onBack(); return }
 
@@ -238,10 +198,6 @@ private fun ResultScreen(item: ScannedItem?, onBack: () -> Unit) {
         val cm = context.getSystemService(ClipboardManager::class.java)
         cm.setPrimaryClip(ClipData.newPlainText("qr", item.text))
         Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
-    }
-    fun open() {
-        try { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url))) }
-        catch (_: Exception) { Toast.makeText(context, "Can't open", Toast.LENGTH_SHORT).show() }
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -254,10 +210,44 @@ private fun ResultScreen(item: ScannedItem?, onBack: () -> Unit) {
             LText(item.text, LightType.copy)
         }
         val actions = buildList {
-            if (item.isLink) add("Open" to { open() })
+            if (item.isLink) add("Open" to { onOpen(item.url) })
             add("Copy" to { copy() })
         }
         LightBottomBar(actions = actions)
+    }
+}
+
+/** In-app browser: opens links inside LightQR (LightOS has no Chrome). */
+@Composable
+private fun BrowserScreen(url: String, onClose: () -> Unit) {
+    var webView by remember { mutableStateOf<android.webkit.WebView?>(null) }
+
+    androidx.activity.compose.BackHandler {
+        val wv = webView
+        if (wv != null && wv.canGoBack()) wv.goBack() else onClose()
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        // Tiny close bar
+        Box(
+            Modifier.fillMaxWidth().height(gu(2.25f)).padding(horizontal = gu(1f)),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            LText("✕", LightType.title, tap(onClose))
+        }
+        Hairline()
+        androidx.compose.ui.viewinterop.AndroidView(
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            factory = { ctx ->
+                android.webkit.WebView(ctx).apply {
+                    webView = this
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    webViewClient = android.webkit.WebViewClient()
+                    loadUrl(url)
+                }
+            },
+        )
     }
 }
 
