@@ -2,6 +2,8 @@ package com.gios.lightqr
 
 import android.graphics.fonts.SystemFonts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -89,12 +91,10 @@ fun LText(
 /** Simple tap wrapper without the Material ripple (LightOS has no ripples). */
 @Composable
 fun tap(onClick: () -> Unit): Modifier =
-    Modifier.then(
-        androidx.compose.foundation.clickable(
-            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
-            indication = null,
-            onClick = onClick,
-        )
+    Modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick,
     )
 
 /** Centered title bar with optional left/right text buttons — mirrors LightTopBar. */
