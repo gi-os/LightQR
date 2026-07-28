@@ -6,7 +6,7 @@ Two pieces, one repo:
 
 | Piece | What it is | Where |
 |---|---|---|
-| **QR Scanner** | Native Android tool for LightOS. Scan a QR → see the text → open links, keep history. | `app/` |
+| **LightQR** | Native Android tool for LightOS. Scan a QR → see the text → open links, keep history. Styled to match LightOS (Akkurat type, black/white, top + bottom bars). | `app/` |
 | **QR Generator** | Static web page. Type/paste anything → downloadable QR code. | `docs/` → GitHub Pages |
 
 > **Note on the Light SDK:** this is a plain, standalone Android app — *not* built on `light-sdk`. That's deliberate: it uses the standard Android camera (CameraX), the normal soft keyboard for manual entry, and no SDK API restrictions. It installs on the Light Phone III via sideload / Developer Mode ("Any tools"). The trade-off is it isn't eligible for the official Tool Library without porting into the SDK's `tool` module later.
