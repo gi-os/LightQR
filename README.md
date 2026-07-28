@@ -1,4 +1,4 @@
-# light-qr
+# LightQR
 
 A minimalist **QR scanner** for the Light Phone III, plus a companion **text→QR generator** website.
 
@@ -23,11 +23,11 @@ Two pieces, one repo:
 
 ### Option A — Obtainium (recommended, auto-updates)
 1. Install [Obtainium](https://github.com/ImranR98/Obtainium).
-2. Add App → paste: `https://github.com/gi-os/light-qr`
+2. Add App → paste: `https://github.com/gi-os/LightQR`
 3. Obtainium reads the GitHub Releases and installs the latest APK. Every push to `main` publishes a new versioned release, so updates are automatic.
 
 ### Option B — manual sideload
-Download the APK from [Releases](https://github.com/gi-os/light-qr/releases) and:
+Download the APK from [Releases](https://github.com/gi-os/LightQR/releases) and:
 ```
 adb install -r LightQR-vX.Y.Z.apk
 ```
@@ -35,7 +35,7 @@ On LightOS, set tool permissions to **"Any tools"** to launch it from the toolbo
 
 ## The generator
 
-Live at **https://gi-os.github.io/light-qr/** (once Pages is enabled on `/docs`).
+Live at **https://gi-os.github.io/LightQR/** (once Pages is enabled on `/docs`).
 Runs entirely in the browser — nothing is sent anywhere.
 
 ## Auto-versioned releases (for Obtainium)

@@ -63,7 +63,7 @@ jobs:
             Automated build of the Light Phone III QR Scanner tool.
 
             **Install / update via Obtainium** — point it at this repo:
-            `https://github.com/gi-os/light-qr`
+            `https://github.com/gi-os/LightQR`
 
             Or download the APK below and sideload with ADB:
             `adb install -r LightQR-v${{ steps.ver.outputs.name }}.apk`
