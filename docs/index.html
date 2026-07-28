@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Light QR — Text to QR</title>
+<meta name="description" content="Convert any text into a QR code. Minimal, offline, no tracking." />
+<style>
+  :root { --ink:#000; --paper:#fff; --muted:#666; --line:#ddd; }
+  @media (prefers-color-scheme: dark){
+    :root { --ink:#fff; --paper:#000; --muted:#999; --line:#333; }
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; }
+  body {
+    background:var(--paper); color:var(--ink);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    display:flex; flex-direction:column; align-items:center;
+    padding:32px 20px 48px; gap:24px;
+  }
+  header { text-align:center; }
+  h1 { font-size:20px; font-weight:600; margin:0; letter-spacing:.5px; }
+  header p { color:var(--muted); font-size:12px; margin:6px 0 0; }
+  main { width:100%; max-width:440px; display:flex; flex-direction:column; gap:16px; }
+  textarea {
+    width:100%; min-height:120px; resize:vertical; padding:14px;
+    background:transparent; color:var(--ink);
+    border:1px solid var(--line); border-radius:10px;
+    font-family:inherit; font-size:15px; line-height:1.4;
+  }
+  textarea:focus { outline:2px solid var(--ink); outline-offset:-1px; }
+  .qr-wrap {
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:20px; min-height:280px;
+  }
+  #qr { display:block; }
+  #qr img, #qr canvas { display:block; }
+  .empty { color:#999; font-size:13px; }
+  .row { display:flex; gap:10px; }
+  button {
+    flex:1; padding:13px; font-family:inherit; font-size:14px; font-weight:600;
+    border:1px solid var(--ink); border-radius:10px; cursor:pointer;
+    background:var(--ink); color:var(--paper);
+  }
+  button.ghost { background:transparent; color:var(--ink); }
+  button:active { opacity:.7; }
+  button:disabled { opacity:.35; cursor:not-allowed; }
+  footer { color:var(--muted); font-size:11px; text-align:center; line-height:1.6; }
+  footer a { color:var(--muted); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>LIGHT QR</h1>
+    <p>Type anything → get a QR code</p>
+  </header>
+
+  <main>
+    <textarea id="text" placeholder="Paste a link, wifi, note, anything…" autofocus></textarea>
+    <div class="qr-wrap"><div id="qr"><span class="empty">QR appears here</span></div></div>
+    <div class="row">
+      <button id="download" disabled>Download PNG</button>
+      <button id="copy" class="ghost" disabled>Copy image</button>
+    </div>
+  </main>
+
+  <footer>
+    Runs entirely in your browser. Nothing is sent anywhere.<br />
+    Companion to the Light&nbsp;Phone&nbsp;III QR scanner tool · gi-os/light-qr
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const ta = document.getElementById('text');
+    const box = document.getElementById('qr');
+    const dl = document.getElementById('download');
+    const cp = document.getElementById('copy');
+    let debounce, lastCanvas = null;
+
+    function render() {
+      const val = ta.value.trim();
+      box.innerHTML = '';
+      lastCanvas = null;
+      if (!val) {
+        box.innerHTML = '<span class="empty">QR appears here</span>';
+        dl.disabled = cp.disabled = true;
+        return;
+      }
+      // QRCode.js caps around ~1000 chars depending on level; guard it.
+      new QRCode(box, {
+        text: val,
+        width: 240,
+        height: 240,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      // qrcodejs renders a <canvas> (and a fallback <img>)
+      setTimeout(() => {
+        lastCanvas = box.querySelector('canvas');
+        const ok = !!(lastCanvas || box.querySelector('img'));
+        dl.disabled = cp.disabled = !ok;
+      }, 30);
+    }
+
+    ta.addEventListener('input', () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(render, 150);
+    });
+
+    function getCanvas() {
+      if (lastCanvas) return lastCanvas;
+      const img = box.querySelector('img');
+      if (!img) return null;
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth || 240;
+      c.height = img.naturalHeight || 240;
+      c.getContext('2d').drawImage(img, 0, 0);
+      return c;
+    }
+
+    dl.addEventListener('click', () => {
+      const c = getCanvas(); if (!c) return;
+      const a = document.createElement('a');
+      a.href = c.toDataURL('image/png');
+      a.download = 'qr.png';
+      a.click();
+    });
+
+    cp.addEventListener('click', async () => {
+      const c = getCanvas(); if (!c) return;
+      try {
+        const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        cp.textContent = 'Copied!';
+        setTimeout(() => (cp.textContent = 'Copy image'), 1200);
+      } catch (e) {
+        cp.textContent = 'Not supported';
+        setTimeout(() => (cp.textContent = 'Copy image'), 1200);
+      }
+    });
+  </script>
+</body>
+</html>

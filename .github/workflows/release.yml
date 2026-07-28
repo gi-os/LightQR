@@ -1,0 +1,71 @@
+name: Build & Release APK
+
+# Auto-builds a signed, versioned APK on every push to main and publishes it
+# as a GitHub Release. Obtainium watches this repo's releases and installs
+# updates automatically (same signing key each build = clean in-place upgrades).
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute version
+        id: ver
+        run: |
+          echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "name=1.0.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build release APK
+        env:
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
+        run: gradle :app:assembleRelease --no-daemon
+
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk \
+             LightQR-v${{ steps.ver.outputs.name }}.apk
+
+      - name: Publish Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.name }}
+          name: LightQR v${{ steps.ver.outputs.name }}
+          body: |
+            Automated build of the Light Phone III QR Scanner tool.
+
+            **Install / update via Obtainium** — point it at this repo:
+            `https://github.com/gi-os/light-qr`
+
+            Or download the APK below and sideload with ADB:
+            `adb install -r LightQR-v${{ steps.ver.outputs.name }}.apk`
+          files: LightQR-v${{ steps.ver.outputs.name }}.apk
+          make_latest: true
