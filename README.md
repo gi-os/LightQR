@@ -76,6 +76,23 @@ LightQR is a plain Android app. It does not use
 and the standard soft keyboard work without an API allowlist, but the tool cannot enter
 the official Tool Library until someone ports it into the SDK `tool` module.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/scanner.png" width="260" alt="LightQR scanner, waiting for a code"><br>
+      <sub>Scanner</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/link.png" width="260" alt="LightQR result screen showing a decoded link"><br>
+      <sub>Result, with OPEN and COPY</sub>
+    </td>
+  </tr>
+</table>
+
+Taken on a Light Phone III.
+
 ## Origin and credits
 
 - **[gi-os/LightPass](https://github.com/gi-os/LightPass)** is where this started. The
@@ -96,7 +113,7 @@ Gradle in GitHub Actions beats an EAS build for a single-developer project.
 
 ## The gi-os Light App collection
 
-Eight tools for the Light Phone III, all open source, all built in one run.
+Nine tools for the Light Phone III, all open source, all built in one run.
 
 | Tool | What it does | Built on |
 | --- | --- | --- |
@@ -108,6 +125,7 @@ Eight tools for the Light Phone III, all open source, all built in one run.
 | [LightFog](https://github.com/gi-os/LightFog) | Fog of World companion, GPS recorder and fog map | Fork of [garado/light-topographic](https://github.com/garado/light-topographic) |
 | [LightNonogram](https://github.com/gi-os/LightNonogram) | Picross, plus a generator that only ships solvable puzzles | Kotlin generator, light-sdk tool |
 | [LightSolitaire](https://github.com/gi-os/LightSolitaire) | Klondike, draw one, unlimited redeals | light-sdk |
+| [LightFastread](https://github.com/gi-os/LightFastread) | RSVP speed reader for EPUB and MOBI | Fork of [fluffyspace/FastRead](https://github.com/fluffyspace/FastRead) |
 
 The Light Phone does not sponsor or endorse any of these.
 
