@@ -113,7 +113,7 @@ Gradle in GitHub Actions beats an EAS build for a single-developer project.
 
 ## The gi-os Light App collection
 
-Ten tools for the Light Phone III, all open source, all built in one run.
+Twelve tools for the Light Phone III, all open source, all built in one run.
 
 | Tool | What it does | Built on |
 | --- | --- | --- |
@@ -127,8 +127,10 @@ Ten tools for the Light Phone III, all open source, all built in one run.
 | [LightSolitaire](https://github.com/gi-os/LightSolitaire) | Klondike, draw one, unlimited redeals | light-sdk |
 | [LightFastread](https://github.com/gi-os/LightFastread) | RSVP speed reader for EPUB and MOBI | Fork of [fluffyspace/FastRead](https://github.com/fluffyspace/FastRead) |
 | [LightTip](https://github.com/gi-os/LightTip) | Tip calculator, plus a receipt splitter that reads the line items | Plain Android |
+| [LightNoise](https://github.com/gi-os/LightNoise) | Twelve synthesized sounds, a two-layer mixer and a sleep timer | Plain Android |
+| [LightPods](https://github.com/gi-os/LightPods) | AirPods battery, in-ear and lid status | Plain Android, ports [LibrePods](https://github.com/kavishdevar/librepods) |
 
-The Light Phone does not sponsor or endorse any of these.
+The Light Phone does not sponsor or endorse any of these. Licences vary per repo.
 
 ## License
 
