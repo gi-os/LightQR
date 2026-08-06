@@ -1,3 +1,37 @@
+> [!IMPORTANT]
+> # Deprecated — this is part of Roll now
+>
+> **The scanner has moved into [gi-os/LightCamera](https://github.com/gi-os/LightCamera)** (launcher
+> label **Roll**) as its **QR** capture mode, and this repository is no longer developed. Roll
+> replaces both the stock Camera and Album on the LPIII, so QR is one turn of the wheel away from
+> a viewfinder that is already open — which was the argument for folding it in. A scan takes two
+> seconds and is then over; it never justified its own launcher entry, its own cold start and its
+> own camera bind.
+>
+> **Two bugs were fixed on the way in, and both are worth knowing if you are reading this code:**
+>
+> - **The row-stride bug.** This app handed ZXing `planes[0].buffer` whole. A camera plane is
+>   padded to a hardware-friendly row length, so `rowStride` is routinely larger than `width` and
+>   the buffer is bigger than the picture — which either throws on the length check or decodes a
+>   sheared image. Roll's `qr/QrAnalyzer.kt` copies row by row.
+> - **`android.util.Patterns.WEB_URL` is not a URL test.** It accepts `1.2` and `a.b`, so a code
+>   containing a version number offered to open `https://1.2` in a browser. Roll's `qr/Codes.kt`
+>   has no Android imports at all and is unit-tested, precisely so that question has one checkable
+>   answer.
+>
+> Roll also does more with a payload than this ever did: Wi-Fi credentials, vCards, `geo:` and
+> `SMSTO:` are recognised and offered their own actions, and since v2.40 the same sheet is used for
+> text read out of a photograph or off the viewfinder.
+>
+> **Not carried over:** the local scan history, and typing an address in by hand instead of
+> scanning one.
+>
+> **The generator is unaffected.** [gi-os.github.io/LightQR](https://gi-os.github.io/LightQR/) is a
+> static page served from `docs/` and still works — archiving a repository does not take its Pages
+> site down. It is still the easiest way to hand a long address to the phone.
+>
+> The APK on the releases page keeps working. It simply will not be updated again.
+
 # LightQR
 
 A QR scanner for the Light Phone III, and a companion web page that turns text into a
